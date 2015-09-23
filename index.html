@@ -197,6 +197,142 @@ $ python wordcount.py books/abyss.txt abyss.dat
 - `make`
 	
 
+---
+
+### The Makefile
+```
+# Count words.
+.PHONY : dats
+dats : isles.dat abyss.dat
+
+isles.dat : books/isles.txt
+        python wordcount.py books/isles.txt isles.dat
+
+abyss.dat : books/abyss.txt
+        python wordcount.py books/abyss.txt abyss.dat
+
+.PHONY : clean
+clean :
+        rm -f *.dat
+```
+
+### Exercise
+
+1. Update `Makefile` to handle `last.txt`
+2. Create a new rule that creates `analysis.tar.gz` from the `dat` files
+```
+tar cvfz analysis.tar.gz isles.dat abyss.dat last.dat
+```
+3. Update clean
+
+---
+
+### Automatic variables
+
+The general form of a make rule is
+
+```
+target: dependencies
+&lt;tab&gt; action
+```
+
+In the action part automatic variables can be used
+
+* `$@` for target
+* `$^` for all dependencies
+* `$&lt;` for the first dependency
+
+In the dependencies
+
+* Unix wildcard `*` can be used
+
+### Exercise
+
+1. Rewrite the .dat rules using automatic variables
+2. Add the script to the dependencies
+
+---
+
+## More generalizations
+
+### Makefile wildcards
+
+* The `dat` rules follow a pattern
+* The Makefile wildcard character `%` can be used to summarize all three rules
+
+```
+%.dat: books/%.txt wordcount.py
+        python wordcount.py %&lt; $@
+```
+
+### Variables
+
+* Variables can be assigned
+```
+SCRIPT=wordcount.py
+```
+* and are referenced in the Makefile with e.g.
+```
+python $(SCRIPT)
+```
+
+---
+
+## Functions
+
+Built in functions in make
+
+
+* `wildcard`: list of files mathing a pattern
+
+* `patsubst`: pattern substitution
+
+* `include`: include another Makefile source into the current Makefile
+
+---
+
+### Final version
+
+```
+include config.mk
+
+TXT_FILES=$(wildcard books/*.txt)
+DAT_FILES=$(patsubst books/%.txt, %.dat, $(TXT_FILES))
+
+.PHONY: variables
+variables:
+    @echo TXT_FILES: $(TXT_FILES)
+    @echo DAT_FILES: $(DAT_FILES)
+
+# Count words.
+.PHONY : dats
+dats : $(DAT_FILES)
+
+%.dat : books/%.txt $(COUNT_SRC)
+    $(COUNT_EXE) $&lt; $*.dat
+
+# Generate archive file.
+analysis.tar.gz : $(DAT_FILES) $(COUNT_SRC)
+    tar -czf $@ $^
+
+.PHONY : clean
+clean :
+    rm -f $(DAT_FILES)
+    rm -f analysis.tar.gz
+
+```
+```
+#config.mk
+COUNT_SRC=wordcount.py
+COUNT_EXE=python $(COUNT_SRC)
+```
+
+---
+
+### Exercise
+
+* Complement the Makefile with arule for generating `.jpg` from `.dat` with `plotcount.py`
+* Include `.jpg` files in the archive and remove them for `make clean`
     </textarea>
 
     <script src="/potsdam-automation/refreeze/js/remark-latest.min.js" type="text/javascript"></script>
