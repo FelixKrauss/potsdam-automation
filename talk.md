@@ -123,7 +123,7 @@ In the dependencies
 
 ```
 %.dat: books/%.txt wordcount.py
-        python wordcount.py %< $@
+        python wordcount.py $< $@
 ```
 
 ### Variables
